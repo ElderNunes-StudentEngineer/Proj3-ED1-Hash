@@ -42,21 +42,34 @@ int quadrado_medio(int chave, int tamanho) {
     
     return resto % tamanho; // Retorna o índice na tabela hash
 }
-
 void inserir_hash(Hash *hash, int chave, int valor) {
-    int indice = quadrado_medio(chave, hash->tamanho); // Usando o quadrado médio para encontrar o índice
-    while (hash->itens[indice].chave != -1) { // Percorrendo até encontrar um espaço vazio
-        if (hash->itens[indice].chave == chave) { // Se a chave já existe, atualiza o valor
+    if (hash == NULL) return;
+    
+    int indice = quadrado_medio(chave, hash->tamanho);
+    int pos_original = indice;
+    int vazios = 0;
+    
+    do {
+        if (hash->itens[indice].chave == chave) {
             hash->itens[indice].valor = valor;
+            printf("Valor atualizado para chave %d.\n", chave);
             return;
         }
-        indice = (indice + 1) % hash->tamanho; // Probing linear
-    }
-    hash->itens[indice].chave = chave; // Insere a nova chave
-    hash->itens[indice].valor = valor; // Insere o valor associado à chave
+        if (hash->itens[indice].chave == -1) {
+            hash->itens[indice].chave = chave;
+            hash->itens[indice].valor = valor;
+            printf("Elemento inserido na posicao %d.\n", indice);
+            return;
+        }
+        indice = (indice + 1) % hash->tamanho;
+        vazios++;
+    } while (indice != pos_original && vazios < hash->tamanho);
+    
+    printf("Erro: Tabela hash cheia! Nao foi possivel inserir a chave %d.\n", chave);
 }
 
 int buscar_hash(Hash *hash, int chave) {
+    if (hash == NULL) return -1; // Retorna -1 se a tabela hash for nula
     int indice = quadrado_medio(chave, hash->tamanho);
     int pos_original = indice;
     
@@ -74,21 +87,91 @@ int buscar_hash(Hash *hash, int chave) {
 }
 
 void remover_hash(Hash *hash, int chave) {
-    int indice = abs(chave) % hash->tamanho; // Usando módulo para encontrar o índice
-    while (hash->itens[indice].chave != -1) { // Percorrendo até encontrar a chave ou um espaço vazio
+    if (hash == NULL) return; // Retorna se a tabela hash for nula
+    int indice = quadrado_medio(chave, hash->tamanho);
+    int pos_original = indice;
+
+    do {
         if (hash->itens[indice].chave == chave) {
             hash->itens[indice].chave = -1; // Marca como vazio
-            hash->itens[indice].valor = 0; // Zera o valor
+            hash->itens[indice].valor = 0; // Limpa o valor
+            printf("Elemento com chave %d removido.\n", chave);
             return;
         }
-        indice = (indice + 1) % hash->tamanho; // Probing linear
-    }
+        if (hash->itens[indice].chave == -1) {
+            break; // Não encontrado
+        }
+        indice = (indice + 1) % hash->tamanho;
+    } while (indice != pos_original);
+    printf("Chave %d não encontrada para remoção.\n", chave);
+
 }
 
 void imprimir_hash(Hash *hash) {
+    if (hash == NULL) return;
+    
+    printf("\n--- TABELA HASH (Tamanho: %d) ---\n", hash->tamanho);
     for (int i = 0; i < hash->tamanho; i++) {
-        if (hash->itens[i].chave != -1) { // Verifica se o espaço não está vazio
-            printf("Chave: %d, Valor: %d\n", hash->itens[i].chave, hash->itens[i].valor);
+        if (hash->itens[i].chave != -1) {
+            printf("Posição %d: Chave: %d, Valor: %d\n", i, hash->itens[i].chave, hash->itens[i].valor);
+        } else {
+            printf("Posição %d: Vazia\n", i);
         }
     }
+    printf("-----------------------------\n");
+}
+
+void menu() {
+    int tamanho;
+    printf("Digite o tamanho da tabela hash: ");
+    scanf("%d", &tamanho);
+
+    Hash *hash = criar_hash(tamanho);
+    int opcao, chave, valor, resultado;
+    do {
+        printf("\n------- Menu -------\n");
+        printf("1. Inserir elemento\n");
+        printf("2. Buscar elemento\n");
+        printf("3. Remover elemento\n");
+        printf("4. Imprimir Tabela\n");
+        printf("5. Sair\n");
+        printf("Escolha uma opcao: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1:
+                printf("Digite a chave: ");
+                scanf("%d", &chave);
+                printf("Digite o valor: ");
+                scanf("%d", &valor);
+                inserir_hash(hash, chave, valor);
+                break;
+            case 2:
+                printf("Digite a chave a ser buscada: ");
+                scanf("%d", &chave);
+                resultado = buscar_hash(hash, chave);
+                if (resultado != -1) {
+                    printf("Valor encontrado: %d\n", resultado);
+                } else {
+                    printf("Chave não encontrada.\n");
+                }
+                break;
+            case 3:
+                printf("Digite a chave a ser removida: ");
+                scanf("%d", &chave);
+                remover_hash(hash, chave);
+                break;
+            case 4:
+                imprimir_hash(hash);
+                break;
+            case 5:
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Opção inválida. Tente novamente.\n");
+        }
+    } while (opcao != 5);
+
+    destruir_hash(hash);
+    printf("Programa encerrado.\n");
 }

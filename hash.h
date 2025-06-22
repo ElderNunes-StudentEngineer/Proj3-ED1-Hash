@@ -10,8 +10,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define TAMANHO_HASH 100 // Definindo o tamanho da tabela hash
-
 typedef struct {
     int chave;
     int valor;
@@ -30,6 +28,7 @@ int quadrado_medio(int chave, int tamanho);
 int buscar_hash(Hash *hash, int chave);
 void remover_hash(Hash *hash, int chave);
 void imprimir_hash(Hash *hash); 
+void menu();
 
 
 #endif
